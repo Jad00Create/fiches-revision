@@ -1071,6 +1071,21 @@ function loadSettings() {
   updateGenerateBtn();
 }
 
+// Auto-save on any input change
+document.getElementById('groqKey').addEventListener('input', function() {
+  localStorage.setItem('fiches_groq_key', this.value);
+  updateGenerateBtn();
+});
+document.getElementById('groqModel').addEventListener('change', function() {
+  localStorage.setItem('fiches_groq_model', this.value);
+});
+document.getElementById('defaultSubject').addEventListener('change', function() {
+  localStorage.setItem('fiches_default_subject', this.value);
+});
+document.getElementById('githubToken').addEventListener('input', function() {
+  localStorage.setItem('fiches_github_token', this.value);
+});
+
 // ============================================================
 // FILE UPLOAD
 // ============================================================
@@ -1242,8 +1257,6 @@ function updateGenerateBtn() {
   const hasFile = currentFile !== null;
   document.getElementById('generateBtn').disabled = !(hasKey && hasFile);
 }
-
-document.getElementById('groqKey').addEventListener('input', updateGenerateBtn);
 
 function setPreset(type) {
   const presets = {
