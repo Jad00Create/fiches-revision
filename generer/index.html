@@ -818,6 +818,7 @@ title: Générer des fiches
           <option value="physique">Physique-Chimie</option>
           <option value="nsi">NSI</option>
           <option value="francais">Français</option>
+          <option value="histoire">Histoire-Géographie</option>
           <option value="philo">Philosophie</option>
           <option value="anglais">Anglais</option>
         </select>
@@ -942,6 +943,7 @@ title: Générer des fiches
         <option value="physique">Physique</option>
         <option value="nsi">NSI</option>
         <option value="francais">Français</option>
+        <option value="histoire">Histoire</option>
         <option value="philo">Philo</option>
         <option value="anglais">Anglais</option>
       </select>
@@ -1414,7 +1416,7 @@ async function loadFichesList() {
     return;
   }
 
-  const subjectEmoji = { maths: '📐', physique: '⚛️', nsi: '💻', francais: '📚', philo: '🧠', anglais: '🌍' };
+  const subjectEmoji = { maths: '📐', physique: '⚛️', nsi: '💻', francais: '📚', histoire: '🏛️', philo: '🧠', anglais: '🌍' };
 
   list.innerHTML = fiches.sort((a, b) => new Date(b.date) - new Date(a.date)).map((f, i) => `
     <div class="fiche-item">
