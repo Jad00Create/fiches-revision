@@ -798,16 +798,16 @@ title: Générer des fiches
     <div class="panel" style="margin-bottom: 0;">
       <div class="form-row">
         <div class="form-group">
-          <label>Clé API Gemini (requis)</label>
-          <input type="password" id="geminiKey" placeholder="AIzaSy..." />
-          <div class="form-hint">Gratuit → <a href="https://aistudio.google.com/apikey" target="_blank" style="color: var(--accent-2);">ai.google.dev</a></div>
+          <label>Clé API Groq (requis)</label>
+          <input type="password" id="groqKey" placeholder="gsk_..." />
+          <div class="form-hint">Gratuit, quota quotidien → <a href="https://console.groq.com/keys" target="_blank" style="color: var(--accent-2);">console.groq.com</a></div>
         </div>
         <div class="form-group">
           <label>Modèle</label>
-          <select id="geminiModel">
-            <option value="gemini-2.5-flash">Gemini 2.5 Flash (recommandé)</option>
-            <option value="gemini-2.5-pro">Gemini 2.5 Pro (plus intelligent)</option>
-            <option value="gemini-2.0-flash">Gemini 2.0 Flash (plus rapide)</option>
+          <select id="groqModel">
+            <option value="llama-3.3-70b-versatile">Llama 3.3 70B (recommandé)</option>
+            <option value="meta-llama/llama-4-scout-17b-16e-instruct">Llama 4 Scout 17B</option>
+            <option value="llama-3.1-8b-instant">Llama 3.1 8B (plus rapide)</option>
           </select>
         </div>
       </div>
@@ -1035,8 +1035,8 @@ function toggleSettings() {
 }
 
 function saveSettings() {
-  localStorage.setItem('fiches_gemini_key', document.getElementById('geminiKey').value);
-  localStorage.setItem('fiches_gemini_model', document.getElementById('geminiModel').value);
+  localStorage.setItem('fiches_groq_key', document.getElementById('groqKey').value);
+  localStorage.setItem('fiches_groq_model', document.getElementById('groqModel').value);
   localStorage.setItem('fiches_default_subject', document.getElementById('defaultSubject').value);
   localStorage.setItem('fiches_github_token', document.getElementById('githubToken').value);
   showStatus('Paramètres sauvegardés !', 'success');
@@ -1044,12 +1044,12 @@ function saveSettings() {
 }
 
 function loadSettings() {
-  const key = localStorage.getItem('fiches_gemini_key') || '';
-  const model = localStorage.getItem('fiches_gemini_model') || 'gemini-2.5-flash';
+  const key = localStorage.getItem('fiches_groq_key') || '';
+  const model = localStorage.getItem('fiches_groq_model') || 'llama-3.3-70b-versatile';
   const subject = localStorage.getItem('fiches_default_subject') || 'maths';
   const gh = localStorage.getItem('fiches_github_token') || '';
-  document.getElementById('geminiKey').value = key;
-  document.getElementById('geminiModel').value = model;
+  document.getElementById('groqKey').value = key;
+  document.getElementById('groqModel').value = model;
   document.getElementById('defaultSubject').value = subject;
   document.getElementById('githubToken').value = gh;
   updateGenerateBtn();
@@ -1098,14 +1098,7 @@ function handleFile(file) {
   // Read file
   const reader = new FileReader();
 
-  if (ext === 'pdf' || ['jpg','jpeg','png','webp'].includes(ext)) {
-    reader.onload = () => {
-      currentFileBase64 = reader.result.split(',')[1];
-      currentFile._mimeType = file.type;
-      updateGenerateBtn();
-    };
-    reader.readAsDataURL(file);
-  } else {
+  if (ext === 'txt' || ext === 'md') {
     reader.onload = () => {
       currentFileBase64 = null;
       currentFile._text = reader.result;
@@ -1113,6 +1106,34 @@ function handleFile(file) {
       updateGenerateBtn();
     };
     reader.readAsText(file);
+  } else if (ext === 'pdf') {
+    reader.onload = async () => {
+      showStatus('⏳ Extraction du texte du PDF...', 'info');
+      try {
+        currentFile._text = await extractPdfText(reader.result);
+        currentFile._isText = true;
+        currentFileBase64 = null;
+        showStatus('✅ PDF analysé ! Prêt à générer.', 'success');
+      } catch (e) {
+        showStatus('❌ Erreur lecture PDF : ' + e.message, 'error');
+      }
+      updateGenerateBtn();
+    };
+    reader.readAsArrayBuffer(file);
+  } else if (['jpg','jpeg','png','webp'].includes(ext)) {
+    reader.onload = async () => {
+      showStatus('⏳ OCR en cours sur l\'image...', 'info');
+      try {
+        currentFile._text = await extractImageText(reader.result);
+        currentFile._isText = true;
+        currentFileBase64 = null;
+        showStatus('✅ Image analysée ! Prêt à générer.', 'success');
+      } catch (e) {
+        showStatus('❌ Erreur OCR : ' + e.message, 'error');
+      }
+      updateGenerateBtn();
+    };
+    reader.readAsDataURL(file);
   }
 }
 
@@ -1137,15 +1158,76 @@ function getEmoji(ext) {
 }
 
 // ============================================================
+// TEXT EXTRACTION (PDF + OCR)
+// ============================================================
+async function extractPdfText(arrayBuffer) {
+  // Use pdf.js from CDN
+  if (!window.pdfjsLib) {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    document.head.appendChild(script);
+    await new Promise((resolve, reject) => {
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Impossible de charger pdf.js'));
+    });
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let fullText = '';
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const strings = content.items.map(item => item.str);
+    fullText += strings.join(' ') + '\n\n';
+  }
+
+  if (fullText.trim().length < 20) {
+    throw new Error('Peu de texte détecté. Essaie avec une image plus claire ou un PDF textuel.');
+  }
+
+  return fullText.trim();
+}
+
+async function extractImageText(dataUrl) {
+  // Use Tesseract.js from CDN
+  if (!window.Tesseract) {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    document.head.appendChild(script);
+    await new Promise((resolve, reject) => {
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Impossible de charger Tesseract.js'));
+    });
+  }
+
+  const result = await window.Tesseract.recognize(dataUrl, 'fra+eng', {
+    logger: m => {
+      if (m.status === 'recognizing text') {
+        showStatus(`⏳ OCR : ${Math.round(m.progress * 100)}%...`, 'info');
+      }
+    }
+  });
+
+  const text = result.data.text;
+  if (text.trim().length < 20) {
+    throw new Error('Peu de texte détecté sur l\'image. Essaie avec une image plus claire.');
+  }
+
+  return text.trim();
+}
+
+// ============================================================
 // GENERATION
 // ============================================================
 function updateGenerateBtn() {
-  const hasKey = document.getElementById('geminiKey').value.trim().length > 0;
+  const hasKey = document.getElementById('groqKey').value.trim().length > 0;
   const hasFile = currentFile !== null;
   document.getElementById('generateBtn').disabled = !(hasKey && hasFile);
 }
 
-document.getElementById('geminiKey').addEventListener('input', updateGenerateBtn);
+document.getElementById('groqKey').addEventListener('input', updateGenerateBtn);
 
 function setPreset(type) {
   const presets = {
@@ -1159,8 +1241,8 @@ function setPreset(type) {
 }
 
 async function generate() {
-  const apiKey = document.getElementById('geminiKey').value.trim();
-  const model = document.getElementById('geminiModel').value;
+  const apiKey = document.getElementById('groqKey').value.trim();
+  const model = document.getElementById('groqModel').value;
   const subject = document.getElementById('defaultSubject').value;
   const customPrompt = document.getElementById('customPrompt').value.trim();
 
@@ -1171,12 +1253,21 @@ async function generate() {
   btn.disabled = true;
 
   try {
-    // Build the prompt
+    const subjectNames = {
+      maths: 'Mathématiques',
+      physique: 'Physique-Chimie',
+      nsi: 'NSI',
+      francais: 'Français',
+      histoire: 'Histoire-Géographie',
+      philo: 'Philosophie',
+      anglais: 'Anglais'
+    };
+
     const systemPrompt = `Tu es un expert pédagogique spécialisé dans la création de fiches de révision pour des élèves de Terminale en France.
 
-MATIÈRE : ${subject}
+MATIÈRE : ${subjectNames[subject] || subject}
 
-MISSION : Analyser le cours uploadé et générer TWO outputs au format JSON strict :
+MISSION : Analyser le cours fourni et générer DEUX outputs au format JSON strict :
 
 1. "fiche" : Une fiche de révision complète en Markdown structuré avec :
    - Titre de la fiche
@@ -1205,61 +1296,46 @@ Réponds UNIQUEMENT avec un JSON valide dans ce format exact :
   "flashcards": [{"question": "...", "answer": "..."}]
 }`;
 
-    const userParts = [];
-
-    if (currentFile._isText) {
-      userParts.push({ text: `Voici le contenu du cours :\n\n${currentFile._text}` });
-    } else {
-      userParts.push({
-        inline_data: {
-          mime_type: currentFile._mimeType || currentFile.type,
-          data: currentFileBase64
-        }
-      });
-      userParts.push({ text: 'Voici le document du cours (PDF ou image). Analyse-le et génère la fiche et les flashcards.' });
-    }
+    let userContent = `Voici le contenu du cours :\n\n${currentFile._text}`;
 
     if (customPrompt) {
-      userParts.push({ text: `\nInstructions supplémentaires : ${customPrompt}` });
+      userContent += `\n\nInstructions supplémentaires : ${customPrompt}`;
     }
-
-    const body = {
-      contents: [{ parts: userParts }],
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      generationConfig: {
-        temperature: 0.4,
-        maxOutputTokens: 8192,
-        responseMimeType: 'application/json'
-      }
-    };
 
     showStatus('⏳ L\'IA analyse ton cours...', 'info');
 
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      }
-    );
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userContent }
+        ],
+        temperature: 0.4,
+        max_tokens: 8192,
+        response_format: { type: 'json_object' }
+      })
+    });
 
     if (!resp.ok) {
       const err = await resp.json();
-      throw new Error(err.error?.message || 'Erreur API Gemini');
+      throw new Error(err.error?.message || 'Erreur API Groq');
     }
 
     const data = await resp.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = data.choices?.[0]?.message?.content;
 
     if (!text) throw new Error('Pas de réponse de l\'IA');
 
-    // Parse JSON response
     let parsed;
     try {
       parsed = JSON.parse(text);
     } catch {
-      // Try to extract JSON from markdown code block
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsed = JSON.parse(jsonMatch[0]);
@@ -1271,7 +1347,6 @@ Réponds UNIQUEMENT avec un JSON valide dans ce format exact :
     currentMarkdown = parsed.fiche || '';
     currentFlashcards = parsed.flashcards || [];
 
-    // Display results
     document.getElementById('fichePreview').innerHTML = simpleMarkdown(currentMarkdown);
     document.getElementById('markdownPreview').textContent = currentMarkdown;
     renderFlashcards();
@@ -1570,7 +1645,7 @@ function showStatus(msg, type) {
 
 function updateSteps() {
   const dots = document.querySelectorAll('.step-dot');
-  const hasKey = document.getElementById('geminiKey').value.trim().length > 0;
+  const hasKey = document.getElementById('groqKey').value.trim().length > 0;
   const hasFile = currentFile !== null;
   const hasResult = document.getElementById('resultSection').classList.contains('visible');
 
