@@ -1,0 +1,144 @@
+---
+layout: default
+title: Paramètres
+---
+
+<div class="generator-app">
+
+  <div class="app-header">
+    <h1><span class="gradient-text">Paramètres</span></h1>
+    <p>Configure ta clé API et tes préférences</p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">
+      <div class="icon" style="background: rgba(108, 92, 231, 0.1);">🔑</div>
+      Clé API Groq
+    </div>
+    <div class="form-group">
+      <label>Clé API (requis)</label>
+      <input type="password" id="pgKey" placeholder="gsk_..." />
+      <div class="form-hint">
+        Gratuit, 1000 requêtes/jour, reset quotidien →
+        <a href="https://console.groq.com/keys" target="_blank" style="color: var(--accent-2);">console.groq.com/keys</a>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Modèle</label>
+      <select id="pgModel">
+        <option value="llama-3.3-70b-versatile">Llama 3.3 70B (recommandé)</option>
+        <option value="meta-llama/llama-4-scout-17b-16e-instruct">Llama 4 Scout 17B</option>
+        <option value="llama-3.1-8b-instant">Llama 3.1 8B (plus rapide)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">
+      <div class="icon" style="background: rgba(16, 185, 129, 0.1);">📚</div>
+      Préférences
+    </div>
+    <div class="form-group">
+      <label>Matière par défaut</label>
+      <select id="pgSubject">
+        <option value="maths">Mathématiques</option>
+        <option value="physique">Physique-Chimie</option>
+        <option value="nsi">NSI</option>
+        <option value="francais">Français</option>
+        <option value="histoire">Histoire-Géographie</option>
+        <option value="philo">Philosophie</option>
+        <option value="anglais">Anglais</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">
+      <div class="icon" style="background: rgba(245, 158, 11, 0.1);">📤</div>
+      Publication (optionnel)
+    </div>
+    <div class="form-group">
+      <label>Clé GitHub</label>
+      <input type="password" id="pgGithub" placeholder="ghp_..." />
+      <div class="form-hint">Scope : repo. Pour publier les fiches sur le site public.</div>
+    </div>
+  </div>
+
+  <button class="generate-btn" onclick="saveAll()" style="margin-top: 1rem;">
+    <span class="btn-text">💾 Sauvegarder</span>
+  </button>
+
+  <div class="status-msg" id="statusMsg"></div>
+
+  <div class="panel" style="margin-top: 2rem;">
+    <div class="panel-title">
+      <div class="icon" style="background: rgba(239, 68, 68, 0.1);">🗑️</div>
+      Données
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+      Tes paramètres et fiches sont stockés localement dans ton navigateur.
+    </p>
+    <button class="fiche-action-btn delete" onclick="resetAll()" style="padding: 0.6rem 1.25rem; font-size: 0.85rem;">
+      Réinitialiser tout
+    </button>
+  </div>
+
+</div>
+
+<style>
+  .generator-app { max-width: 600px; margin: 0 auto; padding-top: 2rem; }
+  .app-header { text-align: center; margin-bottom: 3rem; animation: fadeInUp 0.6s ease; }
+  .app-header h1 { font-size: 2.5rem; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 0.75rem; }
+  .app-header p { color: var(--text-secondary); font-size: 1.05rem; }
+  .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; margin-bottom: 1.5rem; animation: fadeInUp 0.5s ease both; }
+  .panel-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.6rem; }
+  .panel-title .icon { width: 32px; height: 32px; border-radius: var(--radius-xs); display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+  .form-group { margin-bottom: 1.25rem; }
+  .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.4rem; }
+  .form-group input, .form-group select { width: 100%; padding: 0.7rem 1rem; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: var(--radius-xs); color: var(--text-primary); font-family: var(--font); font-size: 0.9rem; transition: var(--transition); }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(108,92,231,0.15); }
+  .form-group input::placeholder { color: var(--text-muted); }
+  .form-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem; }
+  .generate-btn { width: 100%; padding: 1rem; border-radius: var(--radius-sm); background: var(--gradient-1); color: white; font-family: var(--font); font-size: 1rem; font-weight: 700; border: none; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
+  .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(108,92,231,0.4); }
+  .status-msg { padding: 0.75rem 1rem; border-radius: var(--radius-xs); font-size: 0.85rem; font-weight: 500; margin-top: 1rem; display: none; }
+  .status-msg.visible { display: block; animation: fadeIn 0.3s ease; }
+  .status-msg.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #10b981; }
+  .fiche-action-btn.delete { padding: 0.4rem 0.75rem; border-radius: var(--radius-xs); background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: #ef4444; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: var(--transition); font-family: var(--font); }
+  .fiche-action-btn.delete:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); }
+</style>
+
+<script>
+function loadAll() {
+  document.getElementById('pgKey').value = localStorage.getItem('fiches_groq_key') || '';
+  document.getElementById('pgModel').value = localStorage.getItem('fiches_groq_model') || 'llama-3.3-70b-versatile';
+  document.getElementById('pgSubject').value = localStorage.getItem('fiches_default_subject') || 'maths';
+  document.getElementById('pgGithub').value = localStorage.getItem('fiches_github_token') || '';
+}
+
+function saveAll() {
+  localStorage.setItem('fiches_groq_key', document.getElementById('pgKey').value.trim());
+  localStorage.setItem('fiches_groq_model', document.getElementById('pgModel').value);
+  localStorage.setItem('fiches_default_subject', document.getElementById('pgSubject').value);
+  localStorage.setItem('fiches_github_token', document.getElementById('pgGithub').value.trim());
+  showMsg('Paramètres sauvegardés !', 'success');
+}
+
+function resetAll() {
+  if (!confirm('Tout supprimer ? Ça inclut tes clés et toutes tes fiches.')) return;
+  localStorage.clear();
+  indexedDB.deleteDatabase('FichesRevisionDB');
+  showMsg('Tout a été supprimé.', 'success');
+  setTimeout(() => loadAll(), 500);
+}
+
+function showMsg(msg, type) {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.className = 'status-msg visible ' + type;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('visible'), 4000);
+}
+
+loadAll();
+</script>

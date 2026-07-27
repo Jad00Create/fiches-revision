@@ -785,6 +785,15 @@ title: Générer des fiches
     <p>Upload ton cours, l'IA génère la fiche + les flashcards</p>
   </div>
 
+  <div id="noKeyBanner" style="display: none; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); border-radius: var(--radius-sm); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; animation: fadeIn 0.3s ease;">
+    <span style="font-size: 1.2rem;">⚠️</span>
+    <div style="flex: 1;">
+      <div style="font-weight: 600; font-size: 0.9rem;">Clé API non configurée</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted);">Tu dois d'abord entrer ta clé Groq gratuite.</div>
+    </div>
+    <a href="../parametres/" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.8rem;">Configurer →</a>
+  </div>
+
   <!-- Steps -->
   <div class="steps">
     <div class="step-dot active" data-step="1">
@@ -812,41 +821,12 @@ title: Générer des fiches
   </div>
   <div class="settings-content" id="settingsContent">
     <div class="panel" style="margin-bottom: 0;">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Clé API Groq (requis)</label>
-          <input type="password" id="groqKey" placeholder="gsk_..." />
-          <div class="form-hint">Gratuit, quota quotidien → <a href="https://console.groq.com/keys" target="_blank" style="color: var(--accent-2);">console.groq.com</a></div>
-        </div>
-        <div class="form-group">
-          <label>Modèle</label>
-          <select id="groqModel">
-            <option value="llama-3.3-70b-versatile">Llama 3.3 70B (recommandé)</option>
-            <option value="meta-llama/llama-4-scout-17b-16e-instruct">Llama 4 Scout 17B</option>
-            <option value="llama-3.1-8b-instant">Llama 3.1 8B (plus rapide)</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Spécialité / Matière par défaut</label>
-        <select id="defaultSubject">
-          <option value="maths">Mathématiques</option>
-          <option value="physique">Physique-Chimie</option>
-          <option value="nsi">NSI</option>
-          <option value="francais">Français</option>
-          <option value="histoire">Histoire-Géographie</option>
-          <option value="philo">Philosophie</option>
-          <option value="anglais">Anglais</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Clé GitHub (optionnel — pour publier)</label>
-        <input type="password" id="githubToken" placeholder="ghp_..." />
-        <div class="form-hint">Scope : repo. Pour publier les fiches sur le site public.</div>
-      </div>
-      <button class="btn btn-secondary" onclick="saveSettings()" style="width: 100%; justify-content: center;">
-        Sauvegarder les paramètres
-      </button>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+        Configure ta clé API Groq et tes préférences.
+      </p>
+      <a href="../parametres/" class="btn btn-primary" style="width: 100%; justify-content: center;">
+        ⚙️ Ouvrir les paramètres
+      </a>
     </div>
   </div>
 
@@ -1050,44 +1030,22 @@ function toggleSettings() {
   content.classList.toggle('open');
 }
 
-function saveSettings() {
-  localStorage.setItem('fiches_groq_key', document.getElementById('groqKey').value);
-  localStorage.setItem('fiches_groq_model', document.getElementById('groqModel').value);
-  localStorage.setItem('fiches_default_subject', document.getElementById('defaultSubject').value);
-  localStorage.setItem('fiches_github_token', document.getElementById('githubToken').value);
-  showStatus('Paramètres sauvegardés !', 'success');
-  updateGenerateBtn();
+function updateGenerateBtn() {
+  const hasKey = (localStorage.getItem('fiches_groq_key') || '').trim().length > 0;
+  const hasFile = currentFile !== null;
+  document.getElementById('generateBtn').disabled = !(hasKey && hasFile);
 }
 
-function loadSettings() {
-  const key = localStorage.getItem('fiches_groq_key') || '';
-  const model = localStorage.getItem('fiches_groq_model') || 'llama-3.3-70b-versatile';
-  const subject = localStorage.getItem('fiches_default_subject') || 'maths';
-  const gh = localStorage.getItem('fiches_github_token') || '';
-  document.getElementById('groqKey').value = key;
-  document.getElementById('groqModel').value = model;
-  document.getElementById('defaultSubject').value = subject;
-  document.getElementById('githubToken').value = gh;
-  updateGenerateBtn();
+function setPreset(type) {
+  const presets = {
+    'Concise': 'Génère une fiche concise et directe. Pas d\'introduction, va à l\'essentiel. Maximum 1 page.',
+    'Complet': 'Génère une fiche complète avec toutes les définitions, propriétés, théorèmes et exemples du cours.',
+    'Exercices': 'Génère une fiche complète + 5 exercices corrigés pour s\'entraîner.',
+    'Flashcards': 'Concentre-toi sur les flashcards. Génère 15-20 cartes couvrant tous les concepts importants.',
+    'Exam': 'Fiche de révision intensive pour l\'épreuve. Focus sur ce qui tombe le plus souvent aux examens. Inclus les pièges à éviter.'
+  };
+  document.getElementById('customPrompt').value = presets[type] || '';
 }
-
-// Auto-save on any input change
-document.getElementById('groqKey').addEventListener('input', function() {
-  localStorage.setItem('fiches_groq_key', this.value);
-  updateGenerateBtn();
-});
-document.getElementById('groqModel').addEventListener('change', function() {
-  localStorage.setItem('fiches_groq_model', this.value);
-});
-document.getElementById('defaultSubject').addEventListener('change', function() {
-  localStorage.setItem('fiches_default_subject', this.value);
-});
-document.getElementById('githubToken').addEventListener('input', function() {
-  localStorage.setItem('fiches_github_token', this.value);
-});
-
-// ============================================================
-// FILE UPLOAD
 // ============================================================
 const uploadZone = document.getElementById('uploadZone');
 const fileInput = document.getElementById('fileInput');
@@ -1270,9 +1228,9 @@ function setPreset(type) {
 }
 
 async function generate() {
-  const apiKey = document.getElementById('groqKey').value.trim();
-  const model = document.getElementById('groqModel').value;
-  const subject = document.getElementById('defaultSubject').value;
+  const apiKey = (localStorage.getItem('fiches_groq_key') || '').trim();
+  const model = localStorage.getItem('fiches_groq_model') || 'llama-3.3-70b-versatile';
+  const subject = localStorage.getItem('fiches_default_subject') || 'maths';
   const customPrompt = document.getElementById('customPrompt').value.trim();
 
   if (!apiKey || !currentFile) return;
@@ -1484,7 +1442,7 @@ function showTab(tab) {
 // SAVE / PUBLISH
 // ============================================================
 async function saveFiche() {
-  const subject = document.getElementById('defaultSubject').value;
+  const subject = localStorage.getItem('fiches_default_subject') || 'maths';
   const fiche = {
     subject,
     title: extractTitle(currentMarkdown),
@@ -1567,7 +1525,6 @@ function openPublishModal(id) {
   const token = localStorage.getItem('fiches_github_token');
   if (!token) {
     showStatus('⚠️ Ajoute une clé GitHub dans les paramètres pour publier.', 'error');
-    toggleSettings();
     return;
   }
   document.getElementById('publishModal').classList.add('open');
@@ -1674,7 +1631,7 @@ function showStatus(msg, type) {
 
 function updateSteps() {
   const dots = document.querySelectorAll('.step-dot');
-  const hasKey = document.getElementById('groqKey').value.trim().length > 0;
+  const hasKey = (localStorage.getItem('fiches_groq_key') || '').trim().length > 0;
   const hasFile = currentFile !== null;
   const hasResult = document.getElementById('resultSection').classList.contains('visible');
 
@@ -1692,7 +1649,12 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Init
-loadSettings();
+function checkKey() {
+  const hasKey = (localStorage.getItem('fiches_groq_key') || '').trim().length > 0;
+  document.getElementById('noKeyBanner').style.display = hasKey ? 'none' : 'flex';
+}
+checkKey();
+updateGenerateBtn();
 loadFichesList();
 updateSteps();
 </script>
