@@ -191,6 +191,21 @@
       outline-offset: 2px;
     }
 
+    .nav-links .nav-generer {
+      background: var(--gradient-1);
+      color: white;
+      padding: 0.45rem 1rem;
+      border-radius: 100px;
+      font-weight: 700;
+    }
+
+    .nav-links .nav-generer:hover {
+      opacity: 0.9;
+      background: var(--gradient-1);
+      color: white;
+      transform: translateY(-1px);
+    }
+
     /* === MAIN CONTENT === */
     main {
       position: relative;
@@ -678,6 +693,7 @@
         <span class="nav-title">FichesRévision</span>
       </a>
       <ul class="nav-links">
+        <li><a href="/generer/" class="nav-generer">✨ Générer</a></li>
         <li><a href="/maths/">Maths</a></li>
         <li><a href="/physique/">Physique</a></li>
         <li><a href="/nsi/">NSI</a></li>
