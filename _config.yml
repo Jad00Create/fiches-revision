@@ -1,0 +1,17 @@
+title: "Fiches de Révision - Terminale"
+description: "Site de fiches de révision pour la classe de Terminale - Maths, Physique, NSI et plus encore"
+theme: jekyll-theme-cayman
+
+plugins:
+  - jekyll-remote-theme
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+
+exclude:
+  - node_modules
+  - vendor
+  - .git
