@@ -816,17 +816,43 @@ title: Générer des fiches
 
   <!-- Settings -->
   <div class="settings-toggle" onclick="toggleSettings()">
-    <span>⚙️ Clés API & Paramètres</span>
+    <span>⚙️ Clé API & Matière</span>
     <span class="arrow">▼</span>
   </div>
   <div class="settings-content" id="settingsContent">
     <div class="panel" style="margin-bottom: 0;">
-      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
-        Configure ta clé API Groq et tes préférences.
-      </p>
-      <a href="../parametres/" class="btn btn-primary" style="width: 100%; justify-content: center;">
-        ⚙️ Ouvrir les paramètres
-      </a>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Clé API Groq</label>
+          <input type="password" id="groqKey" placeholder="gsk_..." />
+          <div class="form-hint">Gratuit, 1000 req/jour → <a href="https://console.groq.com/keys" target="_blank" style="color: var(--accent-2);">console.groq.com</a></div>
+        </div>
+        <div class="form-group">
+          <label>Matière</label>
+          <select id="genSubject">
+            <option value="maths">Mathématiques</option>
+            <option value="physique">Physique-Chimie</option>
+            <option value="nsi">NSI</option>
+            <option value="francais">Français</option>
+            <option value="histoire">Histoire-Géographie</option>
+            <option value="philo">Philosophie</option>
+            <option value="anglais">Anglais</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Clé GitHub (optionnel — pour publier)</label>
+        <input type="password" id="genGithub" placeholder="ghp_..." />
+        <div class="form-hint">Scope : repo. <a href="https://github.com/settings/tokens" target="_blank" style="color: var(--accent-2);">→ Créer un token</a></div>
+      </div>
+      <div style="display: flex; gap: 0.75rem;">
+        <button class="btn btn-primary" onclick="saveInlineSettings()" style="flex: 1; justify-content: center;">
+          💾 Sauvegarder
+        </button>
+        <a href="../parametres/" class="btn btn-secondary" style="flex: 1; justify-content: center;">
+          ⚙️ Tous les paramètres
+        </a>
+      </div>
     </div>
   </div>
 
@@ -1030,6 +1056,33 @@ function toggleSettings() {
   content.classList.toggle('open');
 }
 
+function loadInlineSettings() {
+  document.getElementById('groqKey').value = localStorage.getItem('fiches_groq_key') || '';
+  document.getElementById('genSubject').value = localStorage.getItem('fiches_default_subject') || 'maths';
+  document.getElementById('genGithub').value = localStorage.getItem('fiches_github_token') || '';
+}
+
+function saveInlineSettings() {
+  localStorage.setItem('fiches_groq_key', document.getElementById('groqKey').value.trim());
+  localStorage.setItem('fiches_default_subject', document.getElementById('genSubject').value);
+  localStorage.setItem('fiches_github_token', document.getElementById('genGithub').value.trim());
+  showStatus('Paramètres sauvegardés !', 'success');
+  checkKey();
+  updateGenerateBtn();
+}
+
+document.getElementById('groqKey').addEventListener('input', function() {
+  localStorage.setItem('fiches_groq_key', this.value.trim());
+  checkKey();
+  updateGenerateBtn();
+});
+document.getElementById('genSubject').addEventListener('change', function() {
+  localStorage.setItem('fiches_default_subject', this.value);
+});
+document.getElementById('genGithub').addEventListener('input', function() {
+  localStorage.setItem('fiches_github_token', this.value.trim());
+});
+
 function updateGenerateBtn() {
   const hasKey = (localStorage.getItem('fiches_groq_key') || '').trim().length > 0;
   const hasFile = currentFile !== null;
@@ -1230,7 +1283,7 @@ function setPreset(type) {
 async function generate() {
   const apiKey = (localStorage.getItem('fiches_groq_key') || '').trim();
   const model = localStorage.getItem('fiches_groq_model') || 'llama-3.3-70b-versatile';
-  const subject = localStorage.getItem('fiches_default_subject') || 'maths';
+  const subject = document.getElementById('genSubject').value;
   const customPrompt = document.getElementById('customPrompt').value.trim();
 
   if (!apiKey || !currentFile) return;
@@ -1442,7 +1495,7 @@ function showTab(tab) {
 // SAVE / PUBLISH
 // ============================================================
 async function saveFiche() {
-  const subject = localStorage.getItem('fiches_default_subject') || 'maths';
+  const subject = document.getElementById('genSubject').value;
   const fiche = {
     subject,
     title: extractTitle(currentMarkdown),
@@ -1653,6 +1706,7 @@ function checkKey() {
   const hasKey = (localStorage.getItem('fiches_groq_key') || '').trim().length > 0;
   document.getElementById('noKeyBanner').style.display = hasKey ? 'none' : 'flex';
 }
+loadInlineSettings();
 checkKey();
 updateGenerateBtn();
 loadFichesList();
