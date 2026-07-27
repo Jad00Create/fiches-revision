@@ -4,18 +4,18 @@ title: Accueil
 ---
 
 <div class="hero">
-  <div class="hero-badge">Bientôt disponible pour la rentrée</div>
+  <div class="hero-badge">✨ Générateur de fiches par IA</div>
   <h1>
     Révise <span class="gradient-text">plus intelligent</span>,<br>
     pas plus longtemps.
   </h1>
   <p class="hero-sub">
-    Des fiches de révision claires et structurées pour chaque matière.
-    Ajoutées au fur et à mesure de l'année, accessibles partout, sur mobile comme sur ordinateur.
+    Upload ton cours, l'IA génère ta fiche + flashcards en quelques secondes.
+    Stockées sur ton appareil, publiables sur le site si tu veux partager.
   </p>
   <div class="hero-actions">
-    <a href="/maths/" class="btn btn-primary">
-      Commencer à réviser →
+    <a href="/generer/" class="btn btn-primary">
+      ✨ Générer une fiche →
     </a>
     <a href="#matieres" class="btn btn-secondary">
       Voir les matières
@@ -76,18 +76,18 @@ title: Accueil
 
 <div class="features">
   <div class="feature">
-    <div class="feature-icon">⚡</div>
-    <h3>Ultra rapide</h3>
-    <p>Les fiches sont accessibles en une seconde, sur n'importe quel appareil.</p>
+    <div class="feature-icon">🤖</div>
+    <h3>IA intégrée</h3>
+    <p>Upload un cours (PDF/image), l'IA génère la fiche + flashcards automatiquement.</p>
   </div>
   <div class="feature">
     <div class="feature-icon">📱</div>
-    <h3>Mobile-first</h3>
-    <p>Conçu pour réviser facilement depuis ton téléphone, où que tu sois.</p>
+    <h3>100% local</h3>
+    <p>Tes fiches restent sur ton appareil. Aucune donnée envoyée sauf quand tu le choisis.</p>
   </div>
   <div class="feature">
     <div class="feature-icon">🔄</div>
-    <h3>Toujours à jour</h3>
-    <p>De nouvelles fiches ajoutées régulièrement tout au long de l'année.</p>
+    <h3>Partage optionnel</h3>
+    <p>Publie tes fiches sur le site pour les autres élèves avec un seul clic.</p>
   </div>
 </div>

@@ -1,0 +1,1594 @@
+---
+layout: default
+title: Générer des fiches
+---
+
+<style>
+  :root {
+    --accent: #6c5ce7;
+    --accent-2: #a855f7;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+  }
+
+  .generator-app {
+    max-width: 900px;
+    margin: 0 auto;
+    padding-top: 2rem;
+  }
+
+  .app-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    animation: fadeInUp 0.6s ease;
+  }
+
+  .app-header h1 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.75rem;
+  }
+
+  .app-header p {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+  }
+
+  /* Steps indicator */
+  .steps {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .step-dot {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 100px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: var(--transition);
+    cursor: pointer;
+  }
+
+  .step-dot.active {
+    background: rgba(108, 92, 231, 0.1);
+    border-color: rgba(108, 92, 231, 0.3);
+    color: var(--accent-2);
+  }
+
+  .step-dot.completed {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: var(--success);
+  }
+
+  .step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .step-dot.active .step-num { background: var(--accent); color: white; }
+  .step-dot.completed .step-num { background: var(--success); color: white; }
+
+  /* Panels */
+  .panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.5s ease both;
+  }
+
+  .panel-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .panel-title .icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-xs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  /* Settings */
+  .settings-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 1rem 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+    transition: var(--transition);
+  }
+
+  .settings-toggle:hover {
+    border-color: var(--border-hover);
+  }
+
+  .settings-toggle span {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .settings-toggle .arrow {
+    transition: transform 0.3s ease;
+    color: var(--text-muted);
+  }
+
+  .settings-toggle.open .arrow {
+    transform: rotate(180deg);
+  }
+
+  .settings-content {
+    display: none;
+    padding: 0 0.25rem;
+  }
+
+  .settings-content.open {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    color: var(--text-primary);
+    font-family: var(--font);
+    font-size: 0.9rem;
+    transition: var(--transition);
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+  }
+
+  .form-group input::placeholder,
+  .form-group textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+  .form-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.3rem;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+
+  .upload-zone:hover,
+  .upload-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(108, 92, 231, 0.05);
+  }
+
+  .upload-zone.dragover {
+    transform: scale(1.01);
+  }
+
+  .upload-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+  }
+
+  .upload-zone h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .upload-zone p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .file-preview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: var(--radius-sm);
+    margin-top: 1rem;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .file-preview .file-icon {
+    font-size: 1.5rem;
+  }
+
+  .file-preview .file-info {
+    flex: 1;
+  }
+
+  .file-preview .file-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .file-preview .file-size {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .file-preview .file-remove {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0.25rem;
+    border-radius: var(--radius-xs);
+    transition: var(--transition);
+  }
+
+  .file-preview .file-remove:hover {
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  /* Prompt area */
+  .prompt-area {
+    width: 100%;
+    min-height: 80px;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font);
+    font-size: 0.9rem;
+    resize: vertical;
+    transition: var(--transition);
+  }
+
+  .prompt-area:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+  }
+
+  .prompt-presets {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+  }
+
+  .preset-btn {
+    padding: 0.35rem 0.75rem;
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: var(--font);
+  }
+
+  .preset-btn:hover {
+    background: rgba(108, 92, 231, 0.1);
+    border-color: rgba(108, 92, 231, 0.3);
+    color: var(--accent-2);
+  }
+
+  /* Generate button */
+  .generate-btn {
+    width: 100%;
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    background: var(--gradient-1);
+    color: white;
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+
+  .generate-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(108, 92, 231, 0.4);
+  }
+
+  .generate-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .generate-btn .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+  }
+
+  .generate-btn.loading .spinner { display: block; }
+  .generate-btn.loading .btn-text { display: none; }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Result area */
+  .result-section {
+    display: none;
+    animation: fadeInUp 0.5s ease;
+  }
+
+  .result-section.visible {
+    display: block;
+  }
+
+  .result-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1.25rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.3rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .result-tab {
+    flex: 1;
+    padding: 0.6rem;
+    text-align: center;
+    border-radius: var(--radius-xs);
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .result-tab.active {
+    background: rgba(108, 92, 231, 0.15);
+    color: var(--accent-2);
+  }
+
+  .result-tab:hover:not(.active) {
+    color: var(--text-secondary);
+  }
+
+  .result-content {
+    display: none;
+  }
+
+  .result-content.active {
+    display: block;
+  }
+
+  .fiche-preview {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    max-height: 500px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    color: var(--text-secondary);
+  }
+
+  .fiche-preview h1,
+  .fiche-preview h2,
+  .fiche-preview h3 {
+    color: var(--text-primary);
+  }
+
+  /* Flashcards */
+  .flashcards-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .flashcard-counter {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .flashcard {
+    width: 100%;
+    max-width: 500px;
+    aspect-ratio: 3/2;
+    perspective: 1000px;
+    cursor: pointer;
+  }
+
+  .flashcard-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+  }
+
+  .flashcard.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+  }
+
+  .flashcard-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .flashcard-front {
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.1), rgba(168, 85, 247, 0.1));
+    border: 1px solid rgba(108, 92, 231, 0.2);
+  }
+
+  .flashcard-back {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    transform: rotateY(180deg);
+  }
+
+  .flashcard-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .flashcard-text {
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+
+  .flashcard-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 1rem;
+  }
+
+  .flashcard-nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .fc-nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fc-nav-btn:hover {
+    background: rgba(108, 92, 231, 0.1);
+    border-color: rgba(108, 92, 231, 0.3);
+  }
+
+  .fc-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* My Fiches */
+  .fiches-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .fiche-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    cursor: pointer;
+  }
+
+  .fiche-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--border-hover);
+  }
+
+  .fiche-item .fiche-emoji {
+    font-size: 1.5rem;
+    width: 40px;
+    text-align: center;
+  }
+
+  .fiche-item .fiche-meta {
+    flex: 1;
+  }
+
+  .fiche-item .fiche-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  .fiche-item .fiche-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .fiche-item .fiche-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .fiche-action-btn {
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--radius-xs);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: var(--font);
+  }
+
+  .fiche-action-btn:hover {
+    background: rgba(108, 92, 231, 0.1);
+    border-color: rgba(108, 92, 231, 0.3);
+    color: var(--accent-2);
+  }
+
+  .fiche-action-btn.publish {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+  }
+
+  .fiche-action-btn.publish:hover {
+    background: rgba(16, 185, 129, 0.15);
+  }
+
+  .fiche-action-btn.delete {
+    color: var(--danger);
+  }
+
+  .fiche-action-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+  }
+
+  .empty-state .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  .empty-state p {
+    font-size: 0.9rem;
+  }
+
+  /* Publish modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    max-width: 500px;
+    width: 100%;
+    animation: fadeInUp 0.3s ease;
+  }
+
+  .modal h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+  }
+
+  .modal-btn {
+    padding: 0.6rem 1.25rem;
+    border-radius: var(--radius-xs);
+    font-family: var(--font);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid var(--border);
+  }
+
+  .modal-btn.cancel {
+    background: transparent;
+    color: var(--text-secondary);
+  }
+
+  .modal-btn.confirm {
+    background: var(--gradient-1);
+    border-color: transparent;
+    color: white;
+  }
+
+  /* Status messages */
+  .status-msg {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-xs);
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-top: 1rem;
+    display: none;
+  }
+
+  .status-msg.visible { display: block; animation: fadeIn 0.3s ease; }
+  .status-msg.success { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: var(--success); }
+  .status-msg.error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); }
+  .status-msg.info { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); color: #3b82f6; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+</style>
+
+<div class="generator-app">
+
+  <div class="app-header">
+    <h1>Générer des <span class="gradient-text">fiches</span></h1>
+    <p>Upload ton cours, l'IA génère la fiche + les flashcards</p>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step-dot active" data-step="1">
+      <span class="step-num">1</span>
+      Config
+    </div>
+    <div class="step-dot" data-step="2">
+      <span class="step-num">2</span>
+      Upload
+    </div>
+    <div class="step-dot" data-step="3">
+      <span class="step-num">3</span>
+      Générer
+    </div>
+    <div class="step-dot" data-step="4">
+      <span class="step-num">4</span>
+      Résultat
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="settings-toggle" onclick="toggleSettings()">
+    <span>⚙️ Clés API & Paramètres</span>
+    <span class="arrow">▼</span>
+  </div>
+  <div class="settings-content" id="settingsContent">
+    <div class="panel" style="margin-bottom: 0;">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Clé API Gemini (requis)</label>
+          <input type="password" id="geminiKey" placeholder="AIzaSy..." />
+          <div class="form-hint">Gratuit → <a href="https://aistudio.google.com/apikey" target="_blank" style="color: var(--accent-2);">ai.google.dev</a></div>
+        </div>
+        <div class="form-group">
+          <label>Modèle</label>
+          <select id="geminiModel">
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash (recommandé)</option>
+            <option value="gemini-2.5-pro">Gemini 2.5 Pro (plus intelligent)</option>
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash (plus rapide)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Spécialité / Matière par défaut</label>
+        <select id="defaultSubject">
+          <option value="maths">Mathématiques</option>
+          <option value="physique">Physique-Chimie</option>
+          <option value="nsi">NSI</option>
+          <option value="francais">Français</option>
+          <option value="philo">Philosophie</option>
+          <option value="anglais">Anglais</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Clé GitHub (optionnel — pour publier)</label>
+        <input type="password" id="githubToken" placeholder="ghp_..." />
+        <div class="form-hint">Scope : repo. Pour publier les fiches sur le site public.</div>
+      </div>
+      <button class="btn btn-secondary" onclick="saveSettings()" style="width: 100%; justify-content: center;">
+        Sauvegarder les paramètres
+      </button>
+    </div>
+  </div>
+
+  <!-- Upload -->
+  <div class="panel" id="uploadPanel">
+    <div class="panel-title">
+      <div class="icon" style="background: rgba(108, 92, 231, 0.1);">📄</div>
+      Upload ton cours
+    </div>
+    <div class="upload-zone" id="uploadZone">
+      <div class="upload-icon">📤</div>
+      <h3>Glisse ton cours ici</h3>
+      <p>PDF, images (JPG, PNG), ou texte — max 20 Mo</p>
+      <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.md" />
+    </div>
+    <div class="file-preview" id="filePreview" style="display: none;">
+      <span class="file-icon" id="fileIcon">📄</span>
+      <div class="file-info">
+        <div class="file-name" id="fileName"></div>
+        <div class="file-size" id="fileSize"></div>
+      </div>
+      <button class="file-remove" onclick="removeFile()">✕</button>
+    </div>
+  </div>
+
+  <!-- Prompt -->
+  <div class="panel" id="promptPanel">
+    <div class="panel-title">
+      <div class="icon" style="background: rgba(168, 85, 247, 0.1);">✏️</div>
+      Instructions (optionnel)
+    </div>
+    <textarea class="prompt-area" id="customPrompt" placeholder="Ex : Insiste sur les thèmes 2 et 4, ajoute des exemples concrets, formaté pour une révision rapide..."></textarea>
+    <div class="prompt-presets">
+      <button class="preset-btn" onclick="setPreset('Complet')">📋 Fiche complète</button>
+      <button class="preset-btn" onclick="setPreset('Concise')">⚡ Fiche concise</button>
+      <button class="preset-btn" onclick="setPreset('Exercices')">✏️ Avec exercices</button>
+      <button class="preset-btn" onclick="setPreset('Flashcards')">🃏 Flashcards focus</button>
+      <button class="preset-btn" onclick="setPreset('Exam')">🎯 Prépa exam</button>
+    </div>
+  </div>
+
+  <!-- Generate button -->
+  <button class="generate-btn" id="generateBtn" onclick="generate()" disabled>
+    <div class="spinner"></div>
+    <span class="btn-text">🚀 Générer la fiche</span>
+  </button>
+
+  <div class="status-msg" id="statusMsg"></div>
+
+  <!-- Results -->
+  <div class="result-section" id="resultSection">
+    <div class="panel">
+      <div class="panel-title">
+        <div class="icon" style="background: rgba(16, 185, 129, 0.1);">✅</div>
+        Résultat
+      </div>
+
+      <div class="result-tabs">
+        <button class="result-tab active" onclick="showTab('fiche')">📝 Fiche</button>
+        <button class="result-tab" onclick="showTab('flashcards')">🃏 Flashcards</button>
+        <button class="result-tab" onclick="showTab('markdown')">📋 Markdown</button>
+      </div>
+
+      <div class="result-content active" id="tab-fiche">
+        <div class="fiche-preview" id="fichePreview"></div>
+      </div>
+
+      <div class="result-content" id="tab-flashcards">
+        <div class="flashcards-container" id="flashcardsContainer"></div>
+      </div>
+
+      <div class="result-content" id="tab-markdown">
+        <div class="fiche-preview" id="markdownPreview" style="font-size: 0.8rem;"></div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+        <button class="btn btn-primary" onclick="saveFiche()" style="flex: 1; justify-content: center;">
+          💾 Sauvegarder en local
+        </button>
+        <button class="btn btn-secondary" onclick="copyMarkdown()" style="flex: 1; justify-content: center;">
+          📋 Copier le Markdown
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Fiches -->
+  <div class="panel">
+    <div class="panel-title">
+      <div class="icon" style="background: rgba(245, 158, 11, 0.1);">📚</div>
+      Mes fiches
+      <span id="fichesCount" style="margin-left: auto; font-size: 0.8rem; color: var(--text-muted); font-weight: 500;"></span>
+    </div>
+    <div class="fiches-list" id="fichesList"></div>
+  </div>
+
+</div>
+
+<!-- Publish Modal -->
+<div class="modal-overlay" id="publishModal">
+  <div class="modal">
+    <h3>📤 Publier sur le site ?</h3>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+      Cette fiche sera ajoutée publiquement sur le site. Tu as besoin d'une clé GitHub avec le scope <code>repo</code>.
+    </p>
+    <div class="form-group">
+      <label>Matière (dossier de destination)</label>
+      <select id="publishSubject">
+        <option value="maths">Maths</option>
+        <option value="physique">Physique</option>
+        <option value="nsi">NSI</option>
+        <option value="francais">Français</option>
+        <option value="philo">Philo</option>
+        <option value="anglais">Anglais</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Nom du fichier</label>
+      <input type="text" id="publishFilename" placeholder="fiche-fonctions" />
+      <div class="form-hint">Sera enregistré dans /matière/fiches/nom.md</div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closePublishModal()">Annuler</button>
+      <button class="modal-btn confirm" onclick="publishFiche()">Publier</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let currentFile = null;
+let currentFileBase64 = null;
+let currentFicheData = null;
+let currentFlashcards = [];
+let currentMarkdown = '';
+let currentPublishIndex = null;
+
+// ============================================================
+// INDEXEDDB
+// ============================================================
+const DB_NAME = 'FichesRevisionDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'fiches';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+        store.createIndex('subject', 'subject', { unique: false });
+        store.createIndex('date', 'date', { unique: false });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbAdd(fiche) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).add(fiche);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function dbGetAll() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbDelete(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function toggleSettings() {
+  const toggle = document.querySelector('.settings-toggle');
+  const content = document.getElementById('settingsContent');
+  toggle.classList.toggle('open');
+  content.classList.toggle('open');
+}
+
+function saveSettings() {
+  localStorage.setItem('fiches_gemini_key', document.getElementById('geminiKey').value);
+  localStorage.setItem('fiches_gemini_model', document.getElementById('geminiModel').value);
+  localStorage.setItem('fiches_default_subject', document.getElementById('defaultSubject').value);
+  localStorage.setItem('fiches_github_token', document.getElementById('githubToken').value);
+  showStatus('Paramètres sauvegardés !', 'success');
+  updateGenerateBtn();
+}
+
+function loadSettings() {
+  const key = localStorage.getItem('fiches_gemini_key') || '';
+  const model = localStorage.getItem('fiches_gemini_model') || 'gemini-2.5-flash';
+  const subject = localStorage.getItem('fiches_default_subject') || 'maths';
+  const gh = localStorage.getItem('fiches_github_token') || '';
+  document.getElementById('geminiKey').value = key;
+  document.getElementById('geminiModel').value = model;
+  document.getElementById('defaultSubject').value = subject;
+  document.getElementById('githubToken').value = gh;
+  updateGenerateBtn();
+}
+
+// ============================================================
+// FILE UPLOAD
+// ============================================================
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+
+uploadZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  uploadZone.classList.add('dragover');
+});
+
+uploadZone.addEventListener('dragleave', () => {
+  uploadZone.classList.remove('dragover');
+});
+
+uploadZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+
+fileInput.addEventListener('change', (e) => {
+  if (e.target.files.length) handleFile(e.target.files[0]);
+});
+
+function handleFile(file) {
+  if (file.size > 20 * 1024 * 1024) {
+    showStatus('Fichier trop volumineux (max 20 Mo)', 'error');
+    return;
+  }
+
+  currentFile = file;
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('fileSize').textContent = formatSize(file.size);
+  document.getElementById('fileIcon').textContent = getEmoji(ext);
+  document.getElementById('filePreview').style.display = 'flex';
+  uploadZone.style.display = 'none';
+
+  // Read file
+  const reader = new FileReader();
+
+  if (ext === 'pdf' || ['jpg','jpeg','png','webp'].includes(ext)) {
+    reader.onload = () => {
+      currentFileBase64 = reader.result.split(',')[1];
+      currentFile._mimeType = file.type;
+      updateGenerateBtn();
+    };
+    reader.readAsDataURL(file);
+  } else {
+    reader.onload = () => {
+      currentFileBase64 = null;
+      currentFile._text = reader.result;
+      currentFile._isText = true;
+      updateGenerateBtn();
+    };
+    reader.readAsText(file);
+  }
+}
+
+function removeFile() {
+  currentFile = null;
+  currentFileBase64 = null;
+  document.getElementById('filePreview').style.display = 'none';
+  uploadZone.style.display = 'block';
+  fileInput.value = '';
+  updateGenerateBtn();
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' o';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' Ko';
+  return (bytes / 1048576).toFixed(1) + ' Mo';
+}
+
+function getEmoji(ext) {
+  const map = { pdf: '📕', jpg: '🖼️', jpeg: '🖼️', png: '🖼️', webp: '🖼️', txt: '📝', md: '📋' };
+  return map[ext] || '📄';
+}
+
+// ============================================================
+// GENERATION
+// ============================================================
+function updateGenerateBtn() {
+  const hasKey = document.getElementById('geminiKey').value.trim().length > 0;
+  const hasFile = currentFile !== null;
+  document.getElementById('generateBtn').disabled = !(hasKey && hasFile);
+}
+
+document.getElementById('geminiKey').addEventListener('input', updateGenerateBtn);
+
+function setPreset(type) {
+  const presets = {
+    'Concise': 'Génère une fiche concise et directe. Pas d\'introduction, va à l\'essentiel. Maximum 1 page.',
+    'Complet': 'Génère une fiche complète avec toutes les définitions, propriétés, théorèmes et exemples du cours.',
+    'Exercices': 'Génère une fiche complète + 5 exercices corrigés pour s\'entraîner.',
+    'Flashcards': 'Concentre-toi sur les flashcards. Génère 15-20 cartes couvrant tous les concepts importants.',
+    'Exam': 'Fiche de révision intensive pour l\'épreuve. Focus sur ce qui tombe le plus souvent aux examens. Inclus les pièges à éviter.'
+  };
+  document.getElementById('customPrompt').value = presets[type] || '';
+}
+
+async function generate() {
+  const apiKey = document.getElementById('geminiKey').value.trim();
+  const model = document.getElementById('geminiModel').value;
+  const subject = document.getElementById('defaultSubject').value;
+  const customPrompt = document.getElementById('customPrompt').value.trim();
+
+  if (!apiKey || !currentFile) return;
+
+  const btn = document.getElementById('generateBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    // Build the prompt
+    const systemPrompt = `Tu es un expert pédagogique spécialisé dans la création de fiches de révision pour des élèves de Terminale en France.
+
+MATIÈRE : ${subject}
+
+MISSION : Analyser le cours uploadé et générer TWO outputs au format JSON strict :
+
+1. "fiche" : Une fiche de révision complète en Markdown structuré avec :
+   - Titre de la fiche
+   - Résumé du cours en sections claires
+   - Définitions importantes
+   - Propriétés / Formules / Théorèmes
+   - Exemples concrets
+   - Points clés à retenir (en gras)
+   - Les erreurs courantes à éviter
+
+2. "flashcards" : Un tableau de 10-15 flashcards au format JSON :
+   [{"question": "...", "answer": "..."}]
+   Les questions doivent couvrir tous les concepts importants du cours.
+   Les réponses doivent être concises mais complètes.
+
+IMPORTANT :
+- Reformule TOUT, ne copie jamais le texte du cours mot pour mot
+- Utilise un français clair et simple
+- Adapte le niveau Terminale
+- Sois precis et pédagogique
+- La fiche doit être révisable en 10-15 minutes
+
+Réponds UNIQUEMENT avec un JSON valide dans ce format exact :
+{
+  "fiche": "contenu markdown ici...",
+  "flashcards": [{"question": "...", "answer": "..."}]
+}`;
+
+    const userParts = [];
+
+    if (currentFile._isText) {
+      userParts.push({ text: `Voici le contenu du cours :\n\n${currentFile._text}` });
+    } else {
+      userParts.push({
+        inline_data: {
+          mime_type: currentFile._mimeType || currentFile.type,
+          data: currentFileBase64
+        }
+      });
+      userParts.push({ text: 'Voici le document du cours (PDF ou image). Analyse-le et génère la fiche et les flashcards.' });
+    }
+
+    if (customPrompt) {
+      userParts.push({ text: `\nInstructions supplémentaires : ${customPrompt}` });
+    }
+
+    const body = {
+      contents: [{ parts: userParts }],
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      generationConfig: {
+        temperature: 0.4,
+        maxOutputTokens: 8192,
+        responseMimeType: 'application/json'
+      }
+    };
+
+    showStatus('⏳ L\'IA analyse ton cours...', 'info');
+
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }
+    );
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error?.message || 'Erreur API Gemini');
+    }
+
+    const data = await resp.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) throw new Error('Pas de réponse de l\'IA');
+
+    // Parse JSON response
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      // Try to extract JSON from markdown code block
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsed = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('Réponse invalide de l\'IA');
+      }
+    }
+
+    currentMarkdown = parsed.fiche || '';
+    currentFlashcards = parsed.flashcards || [];
+
+    // Display results
+    document.getElementById('fichePreview').innerHTML = simpleMarkdown(currentMarkdown);
+    document.getElementById('markdownPreview').textContent = currentMarkdown;
+    renderFlashcards();
+
+    document.getElementById('resultSection').classList.add('visible');
+    document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    showStatus('✅ Fiche générée avec succès !', 'success');
+
+  } catch (err) {
+    showStatus('❌ ' + err.message, 'error');
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    updateSteps();
+  }
+}
+
+// ============================================================
+// FLASHCARDS
+// ============================================================
+let fcIndex = 0;
+
+function renderFlashcards() {
+  const container = document.getElementById('flashcardsContainer');
+  if (!currentFlashcards.length) {
+    container.innerHTML = '<div class="empty-state"><p>Aucune flashcard générée</p></div>';
+    return;
+  }
+
+  fcIndex = 0;
+  container.innerHTML = `
+    <div class="flashcard-counter"><span id="fcCounter">1</span> / ${currentFlashcards.length}</div>
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="flashcard-inner">
+        <div class="flashcard-face flashcard-front">
+          <div class="flashcard-label">Question</div>
+          <div class="flashcard-text" id="fcQuestion"></div>
+          <div class="flashcard-hint">Clique pour retourner</div>
+        </div>
+        <div class="flashcard-face flashcard-back">
+          <div class="flashcard-label">Réponse</div>
+          <div class="flashcard-text" id="fcAnswer"></div>
+        </div>
+      </div>
+    </div>
+    <div class="flashcard-nav">
+      <button class="fc-nav-btn" id="fcPrev" onclick="prevCard()">←</button>
+      <button class="fc-nav-btn" onclick="shuffleCards()">🔀</button>
+      <button class="fc-nav-btn" id="fcNext" onclick="nextCard()">→</button>
+    </div>
+  `;
+
+  updateCard();
+}
+
+function updateCard() {
+  if (!currentFlashcards.length) return;
+  const card = currentFlashcards[fcIndex];
+  document.getElementById('fcQuestion').textContent = card.question;
+  document.getElementById('fcAnswer').textContent = card.answer;
+  document.getElementById('fcCounter').textContent = fcIndex + 1;
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('fcPrev').disabled = fcIndex === 0;
+  document.getElementById('fcNext').disabled = fcIndex === currentFlashcards.length - 1;
+}
+
+function flipCard() {
+  document.getElementById('flashcard').classList.toggle('flipped');
+}
+
+function nextCard() {
+  if (fcIndex < currentFlashcards.length - 1) {
+    fcIndex++;
+    updateCard();
+  }
+}
+
+function prevCard() {
+  if (fcIndex > 0) {
+    fcIndex--;
+    updateCard();
+  }
+}
+
+function shuffleCards() {
+  for (let i = currentFlashcards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [currentFlashcards[i], currentFlashcards[j]] = [currentFlashcards[j], currentFlashcards[i]];
+  }
+  fcIndex = 0;
+  updateCard();
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function showTab(tab) {
+  document.querySelectorAll('.result-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.result-content').forEach(c => c.classList.remove('active'));
+  document.querySelector(`[onclick="showTab('${tab}')"]`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+}
+
+// ============================================================
+// SAVE / PUBLISH
+// ============================================================
+async function saveFiche() {
+  const subject = document.getElementById('defaultSubject').value;
+  const fiche = {
+    subject,
+    title: extractTitle(currentMarkdown),
+    markdown: currentMarkdown,
+    flashcards: currentFlashcards,
+    date: new Date().toISOString(),
+    fileName: currentFile?.name || 'unknown'
+  };
+
+  await dbAdd(fiche);
+  showStatus('💾 Fiche sauvegardée en local !', 'success');
+  loadFichesList();
+}
+
+function extractTitle(md) {
+  const match = md.match(/^#\s+(.+)/m);
+  return match ? match[1].trim() : 'Fiche sans titre';
+}
+
+async function loadFichesList() {
+  const fiches = await dbGetAll();
+  const list = document.getElementById('fichesList');
+  const count = document.getElementById('fichesCount');
+
+  count.textContent = `${fiches.length} fiche${fiches.length !== 1 ? 's' : ''}`;
+
+  if (!fiches.length) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <p>Aucune fiche sauvegardée.<br>Upload un cours et génère ta première fiche !</p>
+      </div>`;
+    return;
+  }
+
+  const subjectEmoji = { maths: '📐', physique: '⚛️', nsi: '💻', francais: '📚', philo: '🧠', anglais: '🌍' };
+
+  list.innerHTML = fiches.sort((a, b) => new Date(b.date) - new Date(a.date)).map((f, i) => `
+    <div class="fiche-item">
+      <span class="fiche-emoji">${subjectEmoji[f.subject] || '📄'}</span>
+      <div class="fiche-meta">
+        <div class="fiche-name">${escapeHtml(f.title)}</div>
+        <div class="fiche-date">${f.subject} · ${new Date(f.date).toLocaleDateString('fr-FR')} · ${f.flashcards?.length || 0} flashcards</div>
+      </div>
+      <div class="fiche-actions">
+        <button class="fiche-action-btn" onclick="viewFiche(${f.id})">Voir</button>
+        <button class="fiche-action-btn publish" onclick="openPublishModal(${f.id})">Publier</button>
+        <button class="fiche-action-btn delete" onclick="deleteFiche(${f.id})">Suppr.</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function viewFiche(id) {
+  const fiches = await dbGetAll();
+  const fiche = fiches.find(f => f.id === id);
+  if (!fiche) return;
+
+  currentMarkdown = fiche.markdown;
+  currentFlashcards = fiche.flashcards || [];
+
+  document.getElementById('fichePreview').innerHTML = simpleMarkdown(currentMarkdown);
+  document.getElementById('markdownPreview').textContent = currentMarkdown;
+  renderFlashcards();
+  document.getElementById('resultSection').classList.add('visible');
+  document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function deleteFiche(id) {
+  if (!confirm('Supprimer cette fiche ?')) return;
+  await dbDelete(id);
+  loadFichesList();
+}
+
+// ============================================================
+// PUBLISH TO GITHUB
+// ============================================================
+function openPublishModal(id) {
+  currentPublishIndex = id;
+  const token = localStorage.getItem('fiches_github_token');
+  if (!token) {
+    showStatus('⚠️ Ajoute une clé GitHub dans les paramètres pour publier.', 'error');
+    toggleSettings();
+    return;
+  }
+  document.getElementById('publishModal').classList.add('open');
+}
+
+function closePublishModal() {
+  document.getElementById('publishModal').classList.remove('open');
+}
+
+async function publishFiche() {
+  const token = localStorage.getItem('fiches_github_token');
+  if (!token || !currentPublishIndex) return;
+
+  const subject = document.getElementById('publishSubject').value;
+  const filename = document.getElementById('publishFilename').value.trim() || 'fiche';
+  const fiches = await dbGetAll();
+  const fiche = fiches.find(f => f.id === currentPublishIndex);
+  if (!fiche) return;
+
+  const path = `${subject}/fiches/${filename}.md`;
+  const content = fiche.markdown;
+  const b64 = btoa(unescape(encodeURIComponent(content)));
+
+  try {
+    // Check if file exists
+    let sha = null;
+    const checkResp = await fetch(
+      `https://api.github.com/repos/Jad00Create/fiches-revision/contents/${path}`,
+      { headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' } }
+    );
+    if (checkResp.ok) {
+      const existing = await checkResp.json();
+      sha = existing.sha;
+    }
+
+    const body = {
+      message: `Ajout fiche : ${fiche.title}`,
+      content: b64,
+      branch: 'main'
+    };
+    if (sha) body.sha = sha;
+
+    const resp = await fetch(
+      `https://api.github.com/repos/Jad00Create/fiches-revision/contents/${path}`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      }
+    );
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.message || 'Erreur GitHub');
+    }
+
+    closePublishModal();
+    showStatus('🚀 Fiche publiée ! Elle sera visible sur le site dans quelques secondes.', 'success');
+  } catch (err) {
+    showStatus('❌ Erreur publication : ' + err.message, 'error');
+  }
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function simpleMarkdown(md) {
+  return md
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/^- (.+)$/gm, '• $1')
+    .replace(/^(\d+)\. (.+)$/gm, '$1. $2')
+    .replace(/\n/g, '<br>');
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function copyMarkdown() {
+  navigator.clipboard.writeText(currentMarkdown).then(() => {
+    showStatus('📋 Markdown copié !', 'success');
+  });
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.className = `status-msg visible ${type}`;
+  clearTimeout(el._timeout);
+  el._timeout = setTimeout(() => el.classList.remove('visible'), 5000);
+}
+
+function updateSteps() {
+  const dots = document.querySelectorAll('.step-dot');
+  const hasKey = document.getElementById('geminiKey').value.trim().length > 0;
+  const hasFile = currentFile !== null;
+  const hasResult = document.getElementById('resultSection').classList.contains('visible');
+
+  dots[0].className = `step-dot ${hasKey ? 'completed' : 'active'}`;
+  dots[1].className = `step-dot ${hasFile ? 'completed' : (!hasKey ? 'active' : 'active')}`;
+  dots[2].className = `step-dot ${hasResult ? 'completed' : (hasKey && hasFile ? 'active' : '')}`;
+  dots[3].className = `step-dot ${hasResult ? 'active' : ''}`;
+}
+
+// Keyboard shortcut for flashcards
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') nextCard();
+  if (e.key === 'ArrowLeft') prevCard();
+  if (e.key === ' ') { e.preventDefault(); flipCard(); }
+});
+
+// Init
+loadSettings();
+loadFichesList();
+updateSteps();
+</script>
+
+{% include footer.html %}
