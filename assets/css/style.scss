@@ -1,0 +1,88 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+/* Personnalisation du thème Cayman */
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* Style des tableaux */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+}
+
+table th,
+table td {
+  padding: 0.75em 1em;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+table tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+/* Style des blocs de code */
+code {
+  background-color: #f4f4f4;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+/* Style des listes */
+ul, ol {
+  margin: 1em 0;
+  padding-left: 2em;
+}
+
+li {
+  margin-bottom: 0.5em;
+}
+
+/* Style des liens */
+a {
+  color: #1e6bb8;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Style des citations */
+blockquote {
+  border-left: 4px solid #1e6bb8;
+  margin: 1.5em 0;
+  padding: 0.5em 1em;
+  background-color: #f8f9fa;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  table {
+    font-size: 0.9em;
+  }
+  
+  table th,
+  table td {
+    padding: 0.5em;
+  }
+}
