@@ -11,7 +11,7 @@ Retrouve ici toutes les fiches de révision de Philosophie.
 
 ## Chapitres
 
-*Aucune fiche disponible pour le moment. Les fiches seront ajoutées au fur et à mesure de l'année.*
+*Aucune fiche disponible pour le moment. Les fiches seront ajoutées au fur et à mesure de l'année…*
 
 ---
 
