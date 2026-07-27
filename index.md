@@ -14,7 +14,7 @@ title: Accueil
     Stockées sur ton appareil, publiables sur le site si tu veux partager.
   </p>
   <div class="hero-actions">
-    <a href="/generer/" class="btn btn-primary">
+    <a href="generer/" class="btn btn-primary">
       ✨ Générer une fiche →
     </a>
     <a href="#matieres" class="btn btn-secondary">
@@ -30,42 +30,42 @@ title: Accueil
   </div>
 
   <div class="cards-grid">
-    <a href="/maths/" class="card card--maths">
+    <a href="maths/" class="card card--maths">
       <div class="card-icon" style="background: rgba(108, 92, 231, 0.1);">📐</div>
       <div class="card-title">Mathématiques</div>
       <div class="card-desc">Spécialité — Fonctions, probabilités, géométrie, et plus encore.</div>
       <span class="card-tag">Spécialité</span>
     </a>
 
-    <a href="/physique/" class="card card--physique">
+    <a href="physique/" class="card card--physique">
       <div class="card-icon" style="background: rgba(6, 182, 212, 0.1);">⚛️</div>
       <div class="card-title">Physique-Chimie</div>
       <div class="card-desc">Spécialité — Mécanique, électricité, chimie organique, et plus.</div>
       <span class="card-tag">Spécialité</span>
     </a>
 
-    <a href="/nsi/" class="card card--nsi">
+    <a href="nsi/" class="card card--nsi">
       <div class="card-icon" style="background: rgba(16, 185, 129, 0.1);">💻</div>
       <div class="card-title">NSI</div>
       <div class="card-desc">Numérique et Sciences Informatiques — Programmation, structures de données, réseaux.</div>
       <span class="card-tag">Spécialité</span>
     </a>
 
-    <a href="/francais/" class="card card--francais">
+    <a href="francais/" class="card card--francais">
       <div class="card-icon" style="background: rgba(245, 158, 11, 0.1);">📚</div>
       <div class="card-title">Français</div>
       <div class="card-desc">Littérature, argumentation, analyse de textes et méthodologie.</div>
       <span class="card-tag">Enseignement expert</span>
     </a>
 
-    <a href="/philo/" class="card card--philo">
+    <a href="philo/" class="card card--philo">
       <div class="card-icon" style="background: rgba(236, 72, 153, 0.1);">🧠</div>
       <div class="card-title">Philosophie</div>
       <div class="card-desc">Concepts clés, auteurs, méthodologie de la dissertation et du commentaire.</div>
       <span class="card-tag">Enseignement expert</span>
     </a>
 
-    <a href="/anglais/" class="card card--anglais">
+    <a href="anglais/" class="card card--anglais">
       <div class="card-icon" style="background: rgba(59, 130, 246, 0.1);">🌍</div>
       <div class="card-title">Anglais</div>
       <div class="card-desc">Grammaire, vocabulaire, expression écrite et orale.</div>

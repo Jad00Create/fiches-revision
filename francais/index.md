@@ -22,6 +22,6 @@ title: Français
   </div>
 
   <div style="text-align: center; margin-top: 2rem;">
-    <a href="/" class="btn btn-secondary">← Retour à l'accueil</a>
+    <a href="../" class="btn btn-secondary">← Retour à l'accueil</a>
   </div>
 </div>
