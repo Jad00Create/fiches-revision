@@ -58,6 +58,13 @@ title: Accueil
       <span class="card-tag">Enseignement expert</span>
     </a>
 
+    <a href="histoire/" class="card card--histoire">
+      <div class="card-icon" style="background: rgba(139, 92, 246, 0.1);">🏛️</div>
+      <div class="card-title">Histoire-Géographie</div>
+      <div class="card-desc">Grandes périodes historiques, géographie mondiale, et méthodologie.</div>
+      <span class="card-tag">Enseignement expert</span>
+    </a>
+
     <a href="philo/" class="card card--philo">
       <div class="card-icon" style="background: rgba(236, 72, 153, 0.1);">🧠</div>
       <div class="card-title">Philosophie</div>
